@@ -145,7 +145,8 @@ class IndexController extends AbstractActionController
         $mappings = $this->config['csv_import_mappings'];
         if (isset($defaultOrder[$resourceType])) {
             return array_values(array_unique(array_merge(
-                $defaultOrder[$resourceType], $mappings[$resourceType]
+                $defaultOrder[$resourceType],
+                $mappings[$resourceType]
             )));
         }
         return $mappings[$resourceType];
@@ -169,7 +170,7 @@ class IndexController extends AbstractActionController
         $autoMaps = [];
         foreach ($columns as $index => $column) {
             $column = trim($column);
-            if (preg_match('/^[a-z0-9-_]+:[a-z0-9-_]+$/i', $column)) {
+            if (preg_match('/^[a-z0-9-_]+:[a-z0-9-_\.]+$/i', $column)) {
                 $response = $this->api()->search('properties', ['term' => $column]);
                 $content = $response->getContent();
                 if (! empty($content)) {
@@ -187,12 +188,13 @@ class IndexController extends AbstractActionController
         $csvImport = $response->getContent()[0];
         $dispatcher = $this->jobDispatcher();
         $job = $dispatcher->dispatch('CSVImport\Job\Undo', ['jobId' => $jobId]);
-        $response = $this->api()->update('csvimport_imports',
-                    $csvImport->id(),
-                    [
+        $response = $this->api()->update(
+            'csvimport_imports',
+            $csvImport->id(),
+            [
                         'o:undo_job' => ['o:id' => $job->getId() ],
                     ]
-                );
+        );
         return $job;
     }
 }
